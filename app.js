@@ -23,10 +23,13 @@ function addBookToLibrary(e) {
 }
 
 function addBookToList() {
-  li = document.createElement('li');
-  li.className = 'list-group-item';
   myLibrary.forEach((book) => {
-    li.appendChild(document.createTextNode());
-    listGroup.appendChild(li);
+    listGroup.appendChild(document.ap`
+    <li class="list-group-item">
+      <p>Title: ${book.title}</p>
+      <p>Author: ${book.author}</p>
+      <p>Read: ${book.isRead}</p>
+    </li>
+    `);
   });
 }
