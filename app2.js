@@ -1,5 +1,50 @@
 // Storage Controller
-const StorageCtrl = (function () {})()
+const StorageCtrl = (function () {
+  return {
+    getItemsFromStorage: function () {
+      let items
+      if (localStorage.getItem("items") === null) {
+        items = []
+      } else {
+        items = JSON.parse(localStorage.getItem("items"))
+      }
+      return items
+    },
+    storeItem: function (book) {
+      let items
+      if (localStorage.getItem("items") === null) {
+        items = []
+        items.push(book)
+        localStorage.setItem("items", JSON.stringify(items))
+      } else {
+        items = JSON.parse(localStorage.getItem("items"))
+        items.push(book)
+        localStorage.setItem("items", JSON.stringify(items))
+      }
+    },
+    updateItemInStorage: function (id) {
+      let items = StorageCtrl.getItemsFromStorage()
+      const book = ItemCtrl.getBookById(id)
+      items.forEach((item) => {
+        if (item.id === id) {
+          item.title = book.title
+          item.author = book.author
+          item.isRead = book.isRead
+        }
+      })
+      localStorage.setItem("items", JSON.stringify(items))
+    },
+    deleteItemFromStorage: function (id) {
+      let items = StorageCtrl.getItemsFromStorage()
+      items.forEach((item, index) => {
+        if (item.id === id) {
+          items.splice(index, 1)
+        }
+      })
+      localStorage.setItem("items", JSON.stringify(items))
+    },
+  }
+})()
 
 // Item Controller
 const ItemCtrl = (function () {
@@ -11,7 +56,7 @@ const ItemCtrl = (function () {
   }
 
   const library = {
-    books: [],
+    books: StorageCtrl.getItemsFromStorage(),
     currentBookIndex: null,
   }
 
@@ -25,6 +70,8 @@ const ItemCtrl = (function () {
       }
       const newBook = new Book(id, title, author, isRead)
       library.books.push(newBook)
+
+      StorageCtrl.storeItem(newBook)
 
       return newBook
     },
@@ -130,8 +177,7 @@ const UICtrl = (function () {
       ).textContent = `Author: ${book.author}`
       bookToUpdate.querySelector(".isRead").textContent = `Read: ${book.isRead}`
     },
-    showBookList: function () {
-      const books = ItemCtrl.getBooks()
+    showBookList: function (books) {
       books.forEach((book) => {
         UICtrl.addBookToList(book)
       })
@@ -189,6 +235,7 @@ const App = (function (ItemCtrl, UICtrl) {
     UICtrl.hideUpdateBtn()
     UICtrl.showAddBtn()
     UICtrl.clearInput()
+    StorageCtrl.updateItemInStorage(id)
     e.preventDefault()
   }
 
@@ -217,11 +264,14 @@ const App = (function (ItemCtrl, UICtrl) {
     if (ok) {
       ItemCtrl.deleteBook(id)
       UICtrl.deleteBookFromList(id)
+      StorageCtrl.deleteItemFromStorage(id)
     }
   }
 
   return {
     init: function () {
+      const books = ItemCtrl.getBooks()
+      UICtrl.showBookList(books)
       loadEventListners()
     },
   }
