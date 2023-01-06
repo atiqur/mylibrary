@@ -43,6 +43,10 @@ const StorageCtrl = (function () {
       })
       localStorage.setItem("items", JSON.stringify(items))
     },
+    deleteAllItemsFromStorage: function () {
+      const items = []
+      localStorage.setItem("items", JSON.stringify(items))
+    },
   }
 })()
 
@@ -64,7 +68,7 @@ const ItemCtrl = (function () {
     addBook: function (title, author, isRead) {
       let id
       if (library.books.length > 0) {
-        id = library.books.length
+        id = library.books[library.books.length - 1].id + 1
       } else {
         id = 0
       }
@@ -92,6 +96,9 @@ const ItemCtrl = (function () {
       book.author = UICtrl.getAuthor()
       book.isRead = UICtrl.getIsRead()
       return book
+    },
+    deleteAllBooks: function () {
+      library.books = []
     },
     getBooks: function () {
       return library.books
@@ -121,8 +128,10 @@ const UICtrl = (function () {
     deleteBook: ".deleteBookBtn",
     editBook: ".editBookBtn",
     listGroup: ".list-group",
+    listItems: ".list-group li",
     submitBtn: "#addBookSubmitBtn",
     updateBtn: "#updateBookSubmitBtn",
+    deleteAllBtn: "#deleteAllBtn",
   }
   return {
     getSelectors: function () {
@@ -167,7 +176,6 @@ const UICtrl = (function () {
     hideAddBtn: function () {
       document.querySelector(UISelectors.submitBtn).style.display = "none"
     },
-
     showUpdatedBook: function (book) {
       const bookId = `#item-${book.id}`
       const bookToUpdate = document.querySelector(bookId)
@@ -186,6 +194,13 @@ const UICtrl = (function () {
       const bookId = `#item-${id}`
       const bookToDelete = document.querySelector(bookId)
       bookToDelete.remove()
+    },
+    deleteAllBooks: function () {
+      const list = document.querySelectorAll(UISelectors.listItems)
+      const listArr = Array.from(list)
+      listArr.forEach((item) => {
+        item.remove()
+      })
     },
     clearInput: function () {
       document.querySelector(UISelectors.inputTitle).value = ""
@@ -210,6 +225,10 @@ const App = (function (ItemCtrl, UICtrl) {
     document
       .querySelector(UISelectors.updateBtn)
       .addEventListener("click", bookUpdateBtnClicked)
+
+    document
+      .querySelector(UISelectors.deleteAllBtn)
+      .addEventListener("click", deleteAllBtnClicked)
   }
 
   const bookAddBtnClicked = function (e) {
@@ -250,6 +269,15 @@ const App = (function (ItemCtrl, UICtrl) {
       deleteBook(id)
     }
     e.preventDefault()
+  }
+
+  const deleteAllBtnClicked = function () {
+    const ok = confirm("Do you want to delete all books?")
+    if (ok) {
+      ItemCtrl.deleteAllBooks()
+      StorageCtrl.deleteAllItemsFromStorage()
+      UICtrl.deleteAllBooks()
+    }
   }
 
   const editBook = function (book) {
